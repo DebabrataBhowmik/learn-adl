@@ -1,0 +1,224 @@
+# ADL Annotated Examples (Syntax Demonstrations)
+
+# This document provides a collection of ADL syntax examples,
+# showcasing how to define Objects, Composites, Event Variables, Regions,
+# and apply reducers and slices in a structured and generic way.
+
+# --------------------------------------------------
+# INFO BLOCKS
+# --------------------------------------------------
+
+info analysis
+  title "Inclusive search for SUSY in final states with boosted objects using razor variables with the CMS Run2 data"
+  experiment CMS
+  id SUS-23-014
+  sqrtS 13.0
+  lumi 138.0
+  id "SUS-16-043"
+  publication "JHEP 11 (2017) 029"
+  sqrtS 13.0
+  lumi 35.9
+  arXiv 1706.09933
+  hepdata http://adress.org
+  doi 10.1007/JHEP11(2017)029
+
+info adl
+  inputformat NanoAODv9 # https://cms-nanoaod-integration.web.cern.ch/autoDoc/NanoAODv9/2017UL/doc_TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1.html
+  adlauthor Changgi Huh, Sezen Sekmen
+
+# --------------------------------------------------
+# OBJECT DEFINITIONS
+# --------------------------------------------------
+
+## Simple object selection
+# Each line inside an object block applies independently to every instance of the input collection.
+object newobject
+  take inputcollection
+  select attribute1 > threshold1
+  select attribute2 < threshold2
+
+# Example:
+object jets
+  take slimmedJets
+  select pT > 30
+  select abs(eta) < 2.4
+
+
+## Combining collections (input objects can also be functions)
+object combinedobject
+  take union(object1, object2)
+
+# Example:
+object leptons
+  take union(electrons, muons)
+
+
+## Defining new attributes inside an object
+# Attribute definitions are evaluated per instance.
+object newobject
+  take inputcollection
+  define newattr = function(attribute1, attribute2)
+
+# Example:
+object jetsWithBTag
+  take jets
+  define btagScore = deepCSV(btagDiscriminator, secondaryVertexMass)
+
+
+## Rejecting objects based on conditions
+object cleanedobjects
+  take inputcollection
+  reject distance(this, othercollection) < threshold
+
+# Example:
+object cleanJets
+  take jets
+  reject dR(this, leptons) < 0.4
+
+
+# --------------------------------------------------
+# USING 'this' IN OBJECT BLOCKS
+# --------------------------------------------------
+
+object cleanedJets
+  take jets
+  reject dR(this, goodLeptons) < 0.4
+
+# 'this' refers to the current object instance being tested.
+
+
+# --------------------------------------------------
+# ACCESSING OBJECTS IN COLLECTIONS
+# --------------------------------------------------
+
+region accessExamples
+  select pT(jets[0]) > 30  # Leading jet pT
+  select eta(jets[1]) < 2.4  # Second-leading jet eta
+  select max(mass(jets[:3])) > 100  # Max mass among first 3 jets
+  select sum(pT(jets[:4])) > 200  # Sum pT of first 4 jets
+
+# Note: Objects such as jets are assumed to be pT-ordered by default.
+
+region sliceExample
+  select min(dphi(jets[:3], METLV[0])) > 0.5
+
+# Slices:
+# - jets[i:j] : loop from index i to j
+# - jets[:i]  : loop from beginning to i
+# - jets[i:]  : loop from i to end
+# Loops combined with reducers like sum(), min(), max().
+
+
+# --------------------------------------------------
+# ANY AND ALL REDUCERS
+# --------------------------------------------------
+
+# Example of any/all usage inside an object block
+object isoElectrons
+  take electrons
+  select any(dR(this, jets) > 0.4)  # At least one jet far from this electron
+  select all(dR(this, jets) > 0.4)  # All jets far from this electron
+
+# Example of any/all usage inside a region block
+region goodEventRegion
+  select any(mass(jets[:3]) > 200)  # Any of the leading 3 jets has mass > 200
+  select all(pT(jets) > 30)         # All jets have pT > 30
+
+
+# --------------------------------------------------
+# COMPOSITE CANDIDATES
+# --------------------------------------------------
+
+## Building candidates from object combinations (functions as input)
+# Each line inside a composite block applies independently to each candidate tuple.
+composite candidates
+  take disjoint(object1 o1, object2 o2)
+  select condition(o1, o2)
+  object compositeobj = o1 + o2
+
+# Example:
+composite Zcands
+  take disjoint(leptons l1, leptons l2)
+  select l1.charge + l2.charge == 0
+  object Z = l1 + l2
+  select mass(Z) [] 80 100
+
+
+# --------------------------------------------------
+# EVENT VARIABLES
+# --------------------------------------------------
+
+define newvariable = operation(attribute1, attribute2)
+
+# Example:
+define HT = sum(pT(jets))
+
+define MTl = sqrt(2*pT(leptons[0])*MET*(1-cos(phi(METLV[0])-phi(leptons[0]))))
+
+
+# --------------------------------------------------
+# REGION SELECTIONS
+# --------------------------------------------------
+
+# Regions define event-level selections.
+# A region groups together a set of cuts (selects) and optionally inherits selections from another region using 'take'.
+# Regions can overlap: the same event may satisfy multiple regions.
+
+region myregion
+  select condition1
+  select condition2
+
+# Example:
+region baseline
+  select size(jets) >= 2
+  select HT > 200
+
+region newregion
+  take previousregion
+  select additional_condition
+
+# Example:
+region signal
+  take baseline
+  select MET > 300
+
+
+# --------------------------------------------------
+# BINS INSIDE REGIONS
+# --------------------------------------------------
+
+# Bins are used to subdivide a region into mutually exclusive (disjoint) subregions.
+# Each event should belong to exactly one bin within a region.
+
+region binnedregion
+  take baseRegion
+  bin "bin1" variable1 [] 100 200 AND variable2 [] 300 400
+  bin "bin2" variable1 [] 200 300 AND variable2 > 400
+
+# Example:
+region highMET
+  take baseline
+  bin "SR1" MET [] 300 500
+  bin "SR2" MET [] 500 800
+
+
+# --------------------------------------------------
+# NOTES
+# --------------------------------------------------
+
+# - Objects are filtered collections.
+# - Composites create new candidates by combining objects.
+# - Regions define event-level selections and can include binning.
+# - Regions can overlap. Bins inside regions must be disjoint.
+# - Each line inside an object or composite block applies independently to each instance or candidate.
+# - "select" and "reject" can be used in Objects, Regions, and Composites.
+# - "define" can be used for object attributes or event-level variables.
+# - Logical words "AND", "OR" are used for combining conditions.
+# - Use slices, any(), and all() to manipulate and filter collections.
+# - 'this' refers to the current object instance when applying conditions.
+# - 'take' can accept direct collections or functional combinations (union, cartesian, disjoint).
+# - Reducers like any()/all()/sum()/min()/max() work over collections or slices.
+
+# --------------------------------------------------
+# End of Annotated Syntax Examples
+# --------------------------------------------------
