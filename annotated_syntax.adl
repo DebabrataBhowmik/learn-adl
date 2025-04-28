@@ -8,23 +8,22 @@
 # INFO BLOCKS
 # --------------------------------------------------
 
+# Information on the analysis
 info analysis
-  title "Inclusive search for SUSY in final states with boosted objects using razor variables with the CMS Run2 data"
+  title Search for supersymmetry in proton-proton collisions at 13 TeV in final states with jets and missing transverse momentum
   experiment CMS
-  id SUS-23-014
+  id SUS-19-006
   sqrtS 13.0
-  lumi 138.0
-  id "SUS-16-043"
-  publication "JHEP 11 (2017) 029"
-  sqrtS 13.0
-  lumi 35.9
-  arXiv 1706.09933
-  hepdata http://adress.org
-  doi 10.1007/JHEP11(2017)029
+  lumi 137
+  publication JHEP 10 (2019) 244
+  arXiv 1908.04722  
+  hepdata https://www.hepdata.net/record/ins1749379
+  doi 10.1007/JHEP10(2019)244
 
+# Information on the ADL file
 info adl
-  inputformat NanoAODv9 # https://cms-nanoaod-integration.web.cern.ch/autoDoc/NanoAODv9/2017UL/doc_TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1.html
-  adlauthor Changgi Huh, Sezen Sekmen
+  inputformat <the input data format used by the analysis, e.g. NanoAODv9, MiniAODv2, ...>
+  adlauthor <name of the person who wrote the ADL file>
 
 # --------------------------------------------------
 # OBJECT DEFINITIONS
@@ -91,22 +90,27 @@ object cleanedJets
 # ACCESSING OBJECTS IN COLLECTIONS
 # --------------------------------------------------
 
+# - obj[i]   : ith instance of the object
+# IMPORTANT: For algorithmic consistency, first request the reuired object multiplicity using size(obj)
+# .... e.g. select size(obj) > i
+# Slices:
+# - obj[i:j] : loop from index i to j
+# - obj[:i]  : loop from beginning to i
+# - obj[i:]  : loop from i to end
+# Loops combined with reducers like sum(), min(), max().
+
+
 region accessExamples
-  select pT(jets[0]) > 30  # Leading jet pT
+  select size(jets) >= 3  # at least 3 jets
+  select pT(jets[0]) > 30  # Leading jet pT 
   select eta(jets[1]) < 2.4  # Second-leading jet eta
-  select max(mass(jets[:3])) > 100  # Max mass among first 3 jets
-  select sum(pT(jets[:4])) > 200  # Sum pT of first 4 jets
+  select max(mass(jets[:1])) > 100  # Max mass among first 4 jets
+  select sum(pT(jets[:2])) > 200  # Sum pT of first 4 jets
 
 # Note: Objects such as jets are assumed to be pT-ordered by default.
 
 region sliceExample
   select min(dphi(jets[:3], METLV[0])) > 0.5
-
-# Slices:
-# - jets[i:j] : loop from index i to j
-# - jets[:i]  : loop from beginning to i
-# - jets[i:]  : loop from i to end
-# Loops combined with reducers like sum(), min(), max().
 
 
 # --------------------------------------------------
@@ -213,7 +217,7 @@ region highMET
 # - Each line inside an object or composite block applies independently to each instance or candidate.
 # - "select" and "reject" can be used in Objects, Regions, and Composites.
 # - "define" can be used for object attributes or event-level variables.
-# - Logical words "AND", "OR" are used for combining conditions.
+# - Logical words "and", "or" are used for combining conditions.
 # - Use slices, any(), and all() to manipulate and filter collections.
 # - 'this' refers to the current object instance when applying conditions.
 # - 'take' can accept direct collections or functional combinations (union, cartesian, disjoint).
