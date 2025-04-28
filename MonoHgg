@@ -1,0 +1,42 @@
+# ADL Annotated Examples (Syntax Demonstrations)
+
+# This document provides a collection of ADL syntax examples,
+# showcasing how to define Objects, Composites, Event Variables, Regions,
+# and apply reducers and slices in a structured and generic way.
+
+# --------------------------------------------------
+# INFO BLOCKS
+# --------------------------------------------------
+
+# Information on the analysis
+info analysis
+  title Search for dark matter produced in association with Higgs boson decaying to two photons in proton-proton collisions at 13 TeV
+  experiment CMS
+  id SUS-24-010
+  sqrtS 13.0
+  lumi 137
+  publication **
+  arXiv **  
+  hepdata **
+  doi **
+
+# Information on the ADL file
+info adl
+  inputformat flashgg_MicroAOD_dev_legacy_RunII
+  adlauthor Debabrata Bhowmik
+
+
+
+# --------------------------------------------------
+# OBJECT DEFINITIONS
+# --------------------------------------------------
+
+# Example:
+object diphotons
+  take <flashgg::DiPhotonCandidate> > diPhotons
+
+object leadingPhoton
+  take diphotons->leadingPhoton()
+
+object leadingPhoton
+  take diphotons->subLeadingPhoton()
