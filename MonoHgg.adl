@@ -40,3 +40,19 @@ object leadingPhoton
 
 object leadingPhoton
   take diphotons->subLeadingPhoton()
+
+object MET
+
+
+object Jets
+
+object Muons
+
+Object electrons
+
+
+object bjets
+
+
+
+
