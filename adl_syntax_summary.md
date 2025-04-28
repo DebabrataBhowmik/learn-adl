@@ -87,14 +87,10 @@ select min(dphi(jets[:3], METLV[0])) > 0.5
 - Object and event selections are clearly separated.
 - No explicit loops: iteration over collections is **implicit**.
 - `select` and `reject` apply conditions **per instance** in collections.
-- Functions like `any`, `all`, `sum`, `min`, `max` are used to reduce over a collection.
+- Functions like `size`, `any`, `all`, `sum`, `min`, `max` are used to reduce over a collection.
 - Logical operators must be `and`, `or`, `not` — avoid `&&`, `||` symbols.
 - Use **slicing** to operate on subgroups within a collection.
 - Bins defined within a region must be **disjoint**.
 - Use `this` to refer to the current object instance inside object and composite blocks.
-- Keep clear distinctions between **object attributes**, **composite attributes**, and **global event variables**.
-- Avoid ambiguous constructs like `count(condition)` that could lead to misuse.
-- Define new attributes inside object blocks, and define global variables outside.
 
 ---
-This is a quick reference. For detailed syntax and examples, refer to the full ADL Syntax Specifications.
